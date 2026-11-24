@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Muñeco en AR</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; font-family: system-ui, sans-serif; }
+    #inicio {
+      position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px; padding: 24px;
+      background: #1d1f2b; color: #fff; text-align: center;
+    }
+    #inicio h1 { margin: 0; font-size: 28px; }
+    #inicio p { margin: 0; max-width: 320px; opacity: .8; line-height: 1.4; }
+    #btn {
+      font-size: 20px; font-weight: 700; padding: 14px 32px; border: 0; border-radius: 999px;
+      background: #ff006e; color: #fff; cursor: pointer;
+    }
+    #btn:disabled { background: #555; }
+    #barra { width: 240px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; display: none; }
+    #barra div { height: 100%; width: 0; background: #06d6a0; transition: width .2s; }
+  </style>
+</head>
+<body>
+  <div id="inicio">
+    <h1>🎉 Muñeco en realidad aumentada</h1>
+    <p>Toca el botón, permite la cámara y apunta a la tarjeta impresa.</p>
+    <button id="btn">Iniciar cámara</button>
+    <div id="barra"><div></div></div>
+    <p id="estado"></p>
+  </div>
+
+  <!-- autoStart:false porque primero "aprendemos" la tarjeta (tarjeta.png) en el navegador -->
+  <a-scene mindar-image="autoStart: false; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001"
+           color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights"
+           vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-light type="ambient" intensity="0.8"></a-light>
+    <a-light type="directional" intensity="1.2" position="0.5 1 1.5"></a-light>
+
+    <!-- El ancho de la tarjeta mide 1 unidad. El eje Z sale de la tarjeta hacia arriba. -->
+    <a-entity mindar-image-target="targetIndex: 0">
+
+      <!-- Sombra sobre la tarjeta -->
+      <a-circle radius="0.13" position="-0.12 0 0.002" color="#000" opacity="0.3"></a-circle>
+
+      <!-- rotation 90 0 0 = poner al muñeco "de pie" sobre la tarjeta -->
+      <a-entity position="-0.12 0 0" rotation="90 0 0">
+        <!-- Aparece con un pequeño "pop" -->
+        <a-entity scale="0 0 0"
+                  animation__pop="property: scale; to: 1 1 1; dur: 600; easing: easeOutBack; startEvents: aparecer"
+                  id="muneco">
+          <!-- Brinca suavemente -->
+          <a-entity animation="property: position; from: 0 0 0; to: 0 0.04 0; dir: alternate; loop: true; dur: 700; easing: easeInOutSine">
+            <!-- Gira despacio para que se vea en 3D -->
+            <a-entity animation="property: rotation; from: 0 -25 0; to: 0 25 0; dir: alternate; loop: true; dur: 2500; easing: easeInOutSine">
+
+              <!-- ===== MUÑECO (hecho con figuras básicas) ===== -->
+              <!-- Piernas -->
+              <a-cylinder radius="0.025" height="0.1" position="-0.04 0.05 0" color="#264653"></a-cylinder>
+              <a-cylinder radius="0.025" height="0.1" position="0.04 0.05 0" color="#264653"></a-cylinder>
+              <a-sphere radius="0.033" scale="1 0.6 1.4" position="-0.04 0.01 0.012" color="#111"></a-sphere>
+              <a-sphere radius="0.033" scale="1 0.6 1.4" position="0.04 0.01 0.012" color="#111"></a-sphere>
+
+              <!-- Cuerpo -->
+              <a-cylinder radius="0.08" height="0.16" position="0 0.18 0" color="#ff006e"></a-cylinder>
+              <a-sphere radius="0.08" scale="1 0.4 1" position="0 0.26 0" color="#ff006e"></a-sphere>
+              <a-circle radius="0.022" position="0 0.2 0.081" color="#ffd60a"></a-circle>
+
+              <!-- Brazo izquierdo -->
+              <a-entity position="-0.09 0.24 0" rotation="0 0 -20">
+                <a-cylinder radius="0.02" height="0.11" position="0 -0.055 0" color="#ff006e"></a-cylinder>
+                <a-sphere radius="0.025" position="0 -0.115 0" color="#f4c7a1"></a-sphere>
+              </a-entity>
+
+              <!-- Brazo derecho: saluda -->
+              <a-entity position="0.09 0.24 0"
+                        animation="property: rotation; from: 0 0 150; to: 0 0 110; dir: alternate; loop: true; dur: 350; easing: easeInOutSine">
+                <a-cylinder radius="0.02" height="0.11" position="0 -0.055 0" color="#ff006e"></a-cylinder>
+                <a-sphere radius="0.025" position="0 -0.115 0" color="#f4c7a1"></a-sphere>
+              </a-entity>
+
+              <!-- Cabeza -->
+              <a-sphere radius="0.085" position="0 0.36 0" color="#f4c7a1"></a-sphere>
+              <!-- Pelo / gorro -->
+              <a-sphere radius="0.088" scale="1 0.55 1" position="0 0.4 -0.005" color="#3a86ff"
+                        theta-length="90"></a-sphere>
+              <a-sphere radius="0.022" position="0 0.455 0" color="#ffd60a"></a-sphere>
+              <!-- Ojos -->
+              <a-sphere radius="0.016" position="-0.03 0.37 0.075" color="#fff"></a-sphere>
+              <a-sphere radius="0.016" position="0.03 0.37 0.075" color="#fff"></a-sphere>
+              <a-sphere radius="0.009" position="-0.03 0.37 0.089" color="#111"></a-sphere>
+              <a-sphere radius="0.009" position="0.03 0.37 0.089" color="#111"></a-sphere>
+              <!-- Cachetes -->
+              <a-circle radius="0.012" position="-0.055 0.345 0.068" rotation="0 -35 0" color="#ff8fab"></a-circle>
+              <a-circle radius="0.012" position="0.055 0.345 0.068" rotation="0 35 0" color="#ff8fab"></a-circle>
+              <!-- Sonrisa -->
+              <a-torus radius="0.022" radius-tubular="0.004" arc="180" rotation="0 0 180"
+                       position="0 0.34 0.08" color="#111"></a-torus>
+              <!-- ===== FIN DEL MUÑECO ===== -->
+
+              <!--
+                ¿Quieres usar un modelo 3D propio (.glb) en vez de este muñeco?
+                Borra todo lo que está entre "MUÑECO" y "FIN DEL MUÑECO" y pon:
+                <a-gltf-model src="muneco.glb" scale="0.3 0.3 0.3" animation-mixer></a-gltf-model>
+                (ajusta scale hasta que tenga buen tamaño sobre la tarjeta)
+              -->
+            </a-entity>
+          </a-entity>
+        </a-entity>
+      </a-entity>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    const btn = document.getElementById('btn');
+    const estado = document.getElementById('estado');
+    const barra = document.getElementById('barra');
+    const relleno = barra.firstElementChild;
+    const escena = document.querySelector('a-scene');
+    const muneco = document.getElementById('muneco');
+
+    function cargarImagen(src) {
+      return new Promise((ok, mal) => {
+        const img = new Image();
+        img.onload = () => ok(img);
+        img.onerror = () => mal(new Error('No se encontró ' + src));
+        img.src = src;
+      });
+    }
+
+    async function iniciar() {
+      btn.disabled = true;
+      barra.style.display = 'block';
+      try {
+        estado.textContent = 'Aprendiendo cómo es la tarjeta…';
+        const img = await cargarImagen('tarjeta.png');
+
+        // Convierte tarjeta.png en datos de reconocimiento (lo mismo que hace el compilador de MindAR)
+        const compilador = new window.MINDAR.IMAGE.Compiler();
+        await compilador.compileImageTargets([img], p => {
+          relleno.style.width = Math.round(p) + '%';
+        });
+        const datos = await compilador.exportData();
+        const url = URL.createObjectURL(new Blob([datos]));
+
+        const sistema = escena.systems['mindar-image-system'];
+        sistema.imageTargetSrc = url;
+        estado.textContent = 'Abriendo cámara…';
+        document.getElementById('inicio').remove();
+        sistema.start();
+      } catch (e) {
+        console.error(e);
+        estado.textContent = 'Error: ' + e.message;
+        btn.disabled = false;
+      }
+    }
+
+    btn.addEventListener('click', () => {
+      if (escena.hasLoaded) iniciar();
+      else escena.addEventListener('loaded', iniciar, { once: true });
+    });
+
+    // Cuando la cámara encuentra la tarjeta, el muñeco aparece con un "pop"
+    document.querySelector('[mindar-image-target]').addEventListener('targetFound', () => {
+      muneco.setAttribute('scale', '0 0 0');
+      muneco.emit('aparecer');
+    });
+  </script>
+</body>
+</html>
